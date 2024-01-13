@@ -1,0 +1,28 @@
+# HiveWay
+
+- [ ] Web Based Public Transit Platform Software
+- [ ] Log in with user name and password
+- [ ] Software as a Service (SaaS)
+- [ ] Cloud Based Only
+- [ ] Ability to support Google Chrome, Microsoft Edge and Safari web browsers
+- [ ] Unlimited Licenses For Staff
+- [ ] Available training or meetings with vendor about product
+- [ ] Ability to import/upload agency General Transit Feed Specification data (GTFS) into software
+- [ ] Perform Transit Route Analysis using agency’s GTFS Data (ex. cost estimates, route geometry creation, route timetable creation, bus stop placement)
+- [ ] Create and Modify new and existing route geometry and stops within the map
+- [ ] Download/export information used in analysis (schedule timetable, bus stops, cost estimates, what routes service each stop, route turn-by-turn directions, distance between stops, demographic info etc.) to Microsoft Office format (Excel, Word)
+- [ ] Ability to display route speeds, proposed number of buses within created project
+- [ ] Display demographic data within web map (Census, American Community Survey, State Level, etc.)
+- [ ] Upload data layers to platform (using Keyhole Markup Language (KML), Javascript Object Notation (JSON), Geographic Information Systems (GIS) Shapefile .shp formats)
+- [ ] Ability to convert route analysis to GIS shapefile .shp, and KML
+- [ ] Perform Isochrone analysis in web map that can identify how far passengers can get with transit in time increments, and where is transit service in relation to one’s location
+- [ ] Perform Title VI bus route Analysis
+- [ ] Feature that can create presentation ready maps that can be provided to the public, staff, stakeholders in jpeg, Portable Network Graphics (PNG) form
+- [ ] Ability to generate GTFS feeds from route analysis or system information
+- [ ] Ability to provide feedback or comments on about route analysis to staff
+- [ ] Ability to share analysis/project with other staff or outside groups via weblink
+- [ ] Have feature that can allow the display of ridership totals by stop and/or route within web map using Automatic Passenger Count (APC) data
+- [ ] Ability to draw points, multimodal lines and polygons display demographic information
+- [ ] Ability to create text or annotation and display within web map
+- [ ] Ability to display quarter, half and three quarter mile buffers of bus stops within web map
+- [ ] Ability to provide and export route statistical data, such as daily and annual costs, route hours and miles and route cost per hour
