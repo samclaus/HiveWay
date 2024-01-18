@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	server, err := NewServer("debug/cache.sqlite3")
+	server, err := NewServer("debug/config.toml")
 	if err != nil {
 		log.Fatalf("Failed to initialize server: %v", err)
 	}

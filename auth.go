@@ -18,6 +18,11 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	RoleNormal = iota
+	RoleAdmin
+)
+
 // UserInfo represents user authentication information stored in the sqlite3 database.
 // Salt and rounds are randomly generated per user when a new user is created.
 // The password is NEVER stored in the database, only the hashed version.
@@ -27,6 +32,7 @@ type UserInfo struct {
 	Salt         []byte `gorm:"salt" json:"-" msgpack:"-"`
 	Rounds       uint   `gorm:"rounds" json:"-" msgpack:"-"`
 	PasswordHash []byte `gorm:"password_hash" json:"-" msgpack:"-"`
+	Role         uint   `gorm:"role" msgpack:"role"`
 	Email        string `gorm:"email" msgpack:"email,omitempty"`
 }
 
@@ -38,13 +44,10 @@ type UserInfo struct {
 // will result in the connection being terminated.
 type AuthRequest struct {
 	Protocol uint `msgpack:"protocol"`
-	// Register, if true, indicates that the user is trying to register a new account,
-	// and not authenticate as an existing one. The server will expect additional
-	// fields/information to be present (in the future) if this is the case, and the
-	// new user will effectively be logged in as usual if everything goes smoothly--
-	// there is no reason to make them login manually immediately after they register
-	// because they would just be retyping the username/password a second time..
-	Register bool   `msgpack:"register"`
+	// Registration token. If provided, it means a new account should be created.
+	// The token will be checked against the bootstrap registration token and
+	// the database. If the token is not valid, the registration attempt will fail.
+	RegToken string `msgpack:"registration_token"`
 	Username string `msgpack:"username"`
 	Password []byte `msgpack:"password"`
 	Email    string `msgpack:"email"`
@@ -100,6 +103,10 @@ var (
 	// ErrBadHandshakeSchema (TODO...)
 	// TODO: compute this on a case-by-case basis and say which fields were not included
 	ErrBadHandshakeSchema = ErrorWithCode{"bad-handshake-schema", "client handshake did not contain required fields", nil}
+	// ErrBadRegistrationToken means they DID provide a registration token, but it was either the
+	// bootstrap token and an admin account is already present, or there were no matching entries
+	// in the table of admin-managed registration tokens.
+	ErrBadRegistrationToken = ErrorWithCode{"bad-registration-token", "registration token is invalid", nil}
 	// ErrUsernameTaken is used to tell the client that they cannot register with the provided
 	// username because another account already exists with the same username. It is very
 	// important that this error only be sent after the registration is validated using a
@@ -214,7 +221,31 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// or an existing user is logging in
 	var user UserInfo
 
-	if auth.Register {
+	if auth.RegToken != "" {
+		var role uint
+
+		if auth.RegToken == s.BootstrapRegToken {
+			role = RoleAdmin
+
+			var adminCount int64
+			if err := s.Database.Model(&UserInfo{}).Where("role = 1").Count(&adminCount).Error; err != nil {
+				log.Printf("Failed to query number of existing admins: %v", err)
+				writeHandshakeErrorOrLog(ws, ErrOpaqueFailure)
+				return
+			}
+
+			if adminCount > 0 {
+				writeHandshakeErrorOrLog(ws, ErrBadRegistrationToken)
+				return
+			}
+		} else {
+			role = RoleNormal
+
+			// TODO: query registration tokens table that gets managed by admins
+			writeHandshakeErrorOrLog(ws, ErrBadRegistrationToken)
+			return
+		}
+
 		// TODO: validate the username (length, allowed characters, etc.)
 		// TODO: probably ensure a certain password length (unsure right now)
 
@@ -241,6 +272,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Salt:         pwdSalt[:],
 			Rounds:       roundsOfHashing,
 			PasswordHash: pwdHash[:],
+			Role:         role,
 			Email:        auth.Email, // TODO: enforce that they specified a well-formed email address
 		}
 
