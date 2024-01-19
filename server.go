@@ -10,6 +10,8 @@ import (
 	"gorm.io/gorm"
 )
 
+type RequestHandler = func(*Server, *UserInfo, []byte) (any, error)
+
 // Server represents this server as a whole and contains global configuration
 // information so request-handling code has a single spot to read it from.
 type Server struct {
@@ -21,6 +23,9 @@ type Server struct {
 
 	// Registration token for bootstrapping the system. See config file documentation.
 	BootstrapRegToken string
+
+	// Handlers for various request types, like "user:list" or "registration_token:delete".
+	RequestHandlers map[string]RequestHandler
 }
 
 // NewServer attempts to open the given configuration file and initialize a server
@@ -49,10 +54,19 @@ func NewServer(cfgPath string) (*Server, error) {
 		return nil, errors.Wrapf(err, "error opening database [%s]", cfg.DatabasePath)
 	}
 
-	if err = db.AutoMigrate(&UserInfo{}); err != nil {
+	if err = db.AutoMigrate(&UserInfo{}, &RegistrationTokenInfo{}); err != nil {
 		// TODO: close database?
-		return nil, errors.Wrap(err, "error migrating user table schema")
+		return nil, errors.Wrap(err, "error migrating database schema")
 	}
 
-	return &Server{db, cfg.BootstrapRegistrationToken}, nil
+	return &Server{
+		Database:          db,
+		BootstrapRegToken: cfg.BootstrapRegistrationToken,
+		RequestHandlers: map[string]RequestHandler{
+			"registration_token:list":   listRegistrationTokens,
+			"registration_token:create": createRegistrationToken,
+			"registration_token:delete": deleteRegistrationToken,
+			"user:list":                 listUsers,
+		},
+	}, nil
 }

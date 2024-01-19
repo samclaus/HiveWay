@@ -222,7 +222,14 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var user UserInfo
 
 	if auth.RegToken != "" {
+		// TODO: validate the username (length, allowed characters, etc.)
+		// TODO: probably ensure a certain password length (unsure right now)
+		// TODO: user/registration_token tables should all be updated in a single transaction
+		// to avoid issues like creating a user but the registration token is still there, or
+		// able to be used multiple times if people register at exactly the same time
+
 		var role uint
+		deleteRegToken := false
 
 		if auth.RegToken == s.BootstrapRegToken {
 			role = RoleAdmin
@@ -239,15 +246,21 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else {
-			role = RoleNormal
+			var token RegistrationTokenInfo
 
-			// TODO: query registration tokens table that gets managed by admins
-			writeHandshakeErrorOrLog(ws, ErrBadRegistrationToken)
-			return
+			if err = s.Database.Take(&token, "id = ?", auth.RegToken).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					writeHandshakeErrorOrLog(ws, ErrBadRegistrationToken)
+				} else {
+					log.Printf("Failed to query registration token [%s]: %v", auth.RegToken, err)
+					writeHandshakeErrorOrLog(ws, ErrOpaqueFailure)
+				}
+				return
+			}
+
+			role = token.Role
+			deleteRegToken = true
 		}
-
-		// TODO: validate the username (length, allowed characters, etc.)
-		// TODO: probably ensure a certain password length (unsure right now)
 
 		id, err := uuid.NewRandom()
 		if err != nil {
@@ -286,6 +299,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				writeHandshakeErrorOrLog(ws, ErrOpaqueFailure)
 			}
 			return
+		}
+
+		if deleteRegToken {
+			if err := s.Database.Delete(&RegistrationTokenInfo{}, "id = ?", auth.RegToken).Error; err != nil {
+				log.Printf("Failed to delete token [%s] after successful registration: %v", auth.RegToken, err)
+			}
 		}
 	} else {
 		if err = s.Database.Take(&user, &UserInfo{Username: auth.Username}).Error; err != nil {
