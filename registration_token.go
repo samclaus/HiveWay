@@ -89,6 +89,7 @@ func deleteRegistrationToken(s *Server, u *UserInfo, payload []byte) (any, error
 	}
 
 	if id == "" {
+		// TODO
 		return nil, errors.New("a non-empty string ID must be supplied")
 	}
 

@@ -67,6 +67,7 @@ func NewServer(cfgPath string) (*Server, error) {
 			"registration_token:create": createRegistrationToken,
 			"registration_token:delete": deleteRegistrationToken,
 			"user:list":                 listUsers,
+			"user:delete":               deleteUser,
 		},
 	}, nil
 }
