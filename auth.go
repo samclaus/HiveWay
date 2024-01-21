@@ -21,6 +21,7 @@ import (
 const (
 	RankNormal = iota
 	RankAdmin
+	RankRoot
 )
 
 // UserInfo represents user authentication information stored in the sqlite3 database.
@@ -46,7 +47,7 @@ type UserInfo struct {
 type AuthRequest struct {
 	Protocol uint `msgpack:"protocol"`
 	// Registration token. If provided, it means a new account should be created.
-	// The token will be checked against the bootstrap registration token and
+	// The token will be checked against the root registration token and
 	// the database. If the token is not valid, the registration attempt will fail.
 	RegToken string `msgpack:"registration_token"`
 	Username string `msgpack:"username"`
@@ -105,7 +106,7 @@ var (
 	// TODO: compute this on a case-by-case basis and say which fields were not included
 	ErrBadHandshakeSchema = ErrorWithCode{"bad-handshake-schema", "client handshake did not contain required fields", nil}
 	// ErrBadRegistrationToken means they DID provide a registration token, but it was either the
-	// bootstrap token and an admin account is already present, or there were no matching entries
+	// root token and a root account is already present, or there were no matching entries
 	// in the table of admin-managed registration tokens.
 	ErrBadRegistrationToken = ErrorWithCode{"bad-registration-token", "registration token is invalid", nil}
 	// ErrUsernameTaken is used to tell the client that they cannot register with the provided
@@ -233,9 +234,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		var name string
 		deleteRegToken := false
 
-		if auth.RegToken == s.BootstrapRegToken {
-			rank = RankAdmin
-			name = "Kami"
+		if auth.RegToken == s.RootRegToken {
+			rank = RankRoot
+			name = "Root"
 
 			var adminCount int64
 			if err := s.Database.Model(&UserInfo{}).Where("rank = 1").Count(&adminCount).Error; err != nil {

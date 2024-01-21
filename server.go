@@ -21,8 +21,8 @@ type Server struct {
 	// change in the future.
 	Database *gorm.DB
 
-	// Registration token for bootstrapping the system. See config file documentation.
-	BootstrapRegToken string
+	// Registration token for bootstrapping the system with the first/root user.
+	RootRegToken string
 
 	// Handlers for various request types, like "user:list" or "registration_token:delete".
 	RequestHandlers map[string]RequestHandler
@@ -60,8 +60,8 @@ func NewServer(cfgPath string) (*Server, error) {
 	}
 
 	return &Server{
-		Database:          db,
-		BootstrapRegToken: cfg.BootstrapRegistrationToken,
+		Database:     db,
+		RootRegToken: cfg.RootRegistrationToken,
 		RequestHandlers: map[string]RequestHandler{
 			"registration_token:list":   listRegistrationTokens,
 			"registration_token:create": createRegistrationToken,

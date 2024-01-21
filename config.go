@@ -9,11 +9,12 @@ type Config struct {
 	// Whenever a user registers, they need to provide a registration token
 	// that has been prepared in advance by an administrator. In order for
 	// the FIRST administrator to make THEIR account, they must provide the
-	// token that is specified here.
+	// token that is specified here. The user that registers with this token
+	// will have special root privileges, such as creating registration tokens
+	// that will allow new ADMINS to register.
 	//
 	// When registering using this token, the system will first check if there
-	// are any existing administrator accounts. If there are, the registration
-	// attempt will be rejected. Otherwise, the account will be created with
-	// an administrator rank.
-	BootstrapRegistrationToken string `toml:"bootstrap_registration_token"`
+	// is an existing root account. If there is, the registration attempt will
+	// be rejected. Otherwise, the account will be created with the root rank.
+	RootRegistrationToken string `toml:"root_registration_token"`
 }
