@@ -12,8 +12,8 @@ import (
 type RegistrationTokenSpec struct {
 	// The ID of the token IS the token, i.e., what users see/use.
 	ID string `gorm:"primaryKey" msgpack:"id"`
-	// Role is the role that will be granted to the user who registers with the token.
-	Role uint `gorm:"role" msgpack:"role"`
+	// Rank is the rank that will be granted to the user who registers with the token.
+	Rank uint `gorm:"rank" msgpack:"rank"`
 	// Name of the person this token is for.
 	Name string `gorm:"name" msgpack:"name"`
 	// Notes is just optional generic text entered by the admin that created the
@@ -33,9 +33,9 @@ type RegistrationTokenInfo struct {
 
 func listRegistrationTokens(s *Server, u *UserInfo, payload []byte) (any, error) {
 	// TODO: improve error
-	if u.Role == 0 {
+	if u.Rank == 0 {
 		return nil, &ErrorWithCode{
-			Code:    "role-too-low",
+			Code:    "rank-too-low",
 			Message: "only admins have permission to view registration tokens",
 		}
 	}
@@ -49,9 +49,9 @@ func listRegistrationTokens(s *Server, u *UserInfo, payload []byte) (any, error)
 
 func createRegistrationToken(s *Server, u *UserInfo, payload []byte) (any, error) {
 	// TODO: improve error
-	if u.Role == 0 {
+	if u.Rank == 0 {
 		return nil, &ErrorWithCode{
-			Code:    "role-too-low",
+			Code:    "rank-too-low",
 			Message: "only admins have permission to create registration tokens",
 		}
 	}
@@ -75,9 +75,9 @@ func createRegistrationToken(s *Server, u *UserInfo, payload []byte) (any, error
 
 func deleteRegistrationToken(s *Server, u *UserInfo, payload []byte) (any, error) {
 	// TODO: improve error
-	if u.Role == 0 {
+	if u.Rank == 0 {
 		return nil, &ErrorWithCode{
-			Code:    "role-too-low",
+			Code:    "rank-too-low",
 			Message: "only admins have permission to delete registration tokens",
 		}
 	}

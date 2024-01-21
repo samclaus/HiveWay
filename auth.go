@@ -19,8 +19,8 @@ import (
 )
 
 const (
-	RoleNormal = iota
-	RoleAdmin
+	RankNormal = iota
+	RankAdmin
 )
 
 // UserInfo represents user authentication information stored in the sqlite3 database.
@@ -32,7 +32,7 @@ type UserInfo struct {
 	Salt         []byte `gorm:"salt" json:"-" msgpack:"-"`
 	Rounds       uint   `gorm:"rounds" json:"-" msgpack:"-"`
 	PasswordHash []byte `gorm:"password_hash" json:"-" msgpack:"-"`
-	Role         uint   `gorm:"role" msgpack:"role"`
+	Rank         uint   `gorm:"rank" msgpack:"rank"`
 	Name         string `gorm:"name" msgpack:"name"`
 	Email        string `gorm:"email" msgpack:"email,omitempty"`
 }
@@ -229,16 +229,16 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// to avoid issues like creating a user but the registration token is still there, or
 		// able to be used multiple times if people register at exactly the same time
 
-		var role uint
+		var rank uint
 		var name string
 		deleteRegToken := false
 
 		if auth.RegToken == s.BootstrapRegToken {
-			role = RoleAdmin
+			rank = RankAdmin
 			name = "Kami"
 
 			var adminCount int64
-			if err := s.Database.Model(&UserInfo{}).Where("role = 1").Count(&adminCount).Error; err != nil {
+			if err := s.Database.Model(&UserInfo{}).Where("rank = 1").Count(&adminCount).Error; err != nil {
 				log.Printf("Failed to query number of existing admins: %v", err)
 				writeHandshakeErrorOrLog(ws, ErrOpaqueFailure)
 				return
@@ -261,7 +261,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			role = token.Role
+			rank = token.Rank
 			name = token.Name
 			deleteRegToken = true
 		}
@@ -289,7 +289,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Salt:         pwdSalt[:],
 			Rounds:       roundsOfHashing,
 			PasswordHash: pwdHash[:],
-			Role:         role,
+			Rank:         rank,
 			Name:         name,
 			Email:        auth.Email, // TODO: enforce that they specified a well-formed email address
 		}

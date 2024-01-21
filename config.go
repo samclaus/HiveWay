@@ -14,6 +14,6 @@ type Config struct {
 	// When registering using this token, the system will first check if there
 	// are any existing administrator accounts. If there are, the registration
 	// attempt will be rejected. Otherwise, the account will be created with
-	// an administrator role.
+	// an administrator rank.
 	BootstrapRegistrationToken string `toml:"bootstrap_registration_token"`
 }

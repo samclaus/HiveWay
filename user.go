@@ -16,9 +16,9 @@ func listUsers(s *Server, u *UserInfo, payload []byte) (any, error) {
 
 func deleteUser(s *Server, u *UserInfo, payload []byte) (any, error) {
 	// TODO: improve error
-	if u.Role == 0 {
+	if u.Rank == 0 {
 		return nil, &ErrorWithCode{
-			Code:    "role-too-low",
+			Code:    "rank-too-low",
 			Message: "only admins have permission to delete users",
 		}
 	}
@@ -41,10 +41,10 @@ func deleteUser(s *Server, u *UserInfo, payload []byte) (any, error) {
 		return nil, err
 	}
 
-	if tu.Role >= u.Role {
+	if tu.Rank >= u.Rank {
 		return nil, &ErrorWithCode{
-			Code:    "role-too-low",
-			Message: "you may not delete this user because they are of equal or higher role",
+			Code:    "rank-too-low",
+			Message: "you may not delete this user because they are of equal or higher rank",
 		}
 	}
 
