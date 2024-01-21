@@ -33,6 +33,7 @@ type UserInfo struct {
 	Rounds       uint   `gorm:"rounds" json:"-" msgpack:"-"`
 	PasswordHash []byte `gorm:"password_hash" json:"-" msgpack:"-"`
 	Role         uint   `gorm:"role" msgpack:"role"`
+	Name         string `gorm:"name" msgpack:"name"`
 	Email        string `gorm:"email" msgpack:"email,omitempty"`
 }
 
@@ -229,10 +230,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// able to be used multiple times if people register at exactly the same time
 
 		var role uint
+		var name string
 		deleteRegToken := false
 
 		if auth.RegToken == s.BootstrapRegToken {
 			role = RoleAdmin
+			name = "Kami"
 
 			var adminCount int64
 			if err := s.Database.Model(&UserInfo{}).Where("role = 1").Count(&adminCount).Error; err != nil {
@@ -259,6 +262,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			role = token.Role
+			name = token.Name
 			deleteRegToken = true
 		}
 
@@ -286,6 +290,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Rounds:       roundsOfHashing,
 			PasswordHash: pwdHash[:],
 			Role:         role,
+			Name:         name,
 			Email:        auth.Email, // TODO: enforce that they specified a well-formed email address
 		}
 

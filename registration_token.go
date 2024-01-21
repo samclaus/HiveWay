@@ -14,8 +14,10 @@ type RegistrationTokenSpec struct {
 	ID string `gorm:"primaryKey" msgpack:"id"`
 	// Role is the role that will be granted to the user who registers with the token.
 	Role uint `gorm:"role" msgpack:"role"`
-	// Notes is just generic text entered by the admin that created the
-	// token. Useful for mentioning who the token is intended  for.
+	// Name of the person this token is for.
+	Name string `gorm:"name" msgpack:"name"`
+	// Notes is just optional generic text entered by the admin that created the
+	// token.
 	Notes string `gorm:"notes" msgpack:"notes"`
 }
 
