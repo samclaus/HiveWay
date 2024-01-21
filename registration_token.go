@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"time"
 
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -22,12 +23,21 @@ type RegistrationTokenSpec struct {
 // to permit new users to register. Every token is single-use.
 type RegistrationTokenInfo struct {
 	RegistrationTokenSpec
+	// CreatedAt is a timestamp of when the token was created.
+	CreatedAt uint64 `gorm:"created_at" msgpack:"created_at"`
 	// CreatedBy is the ID of the admin that created the token.
 	CreatedBy string `gorm:"created_by" msgpack:"created_by"`
 }
 
 func listRegistrationTokens(s *Server, u *UserInfo, payload []byte) (any, error) {
-	// TODO: only admins can list tokens
+	// TODO: improve error
+	if u.Role == 0 {
+		return nil, &ErrorWithCode{
+			Code:    "role-too-low",
+			Message: "only admins have permission to view registration tokens",
+		}
+	}
+
 	var tokens []RegistrationTokenInfo
 	if err := s.Database.Find(&tokens).Error; err != nil {
 		return nil, err
@@ -36,6 +46,14 @@ func listRegistrationTokens(s *Server, u *UserInfo, payload []byte) (any, error)
 }
 
 func createRegistrationToken(s *Server, u *UserInfo, payload []byte) (any, error) {
+	// TODO: improve error
+	if u.Role == 0 {
+		return nil, &ErrorWithCode{
+			Code:    "role-too-low",
+			Message: "only admins have permission to create registration tokens",
+		}
+	}
+
 	var spec RegistrationTokenSpec
 	if err := msgpack.Unmarshal(payload, &spec); err != nil {
 		// TODO
@@ -43,7 +61,7 @@ func createRegistrationToken(s *Server, u *UserInfo, payload []byte) (any, error
 	}
 
 	// Add the CreatedBy field to obtain the full info
-	info := RegistrationTokenInfo{spec, u.ID}
+	info := RegistrationTokenInfo{spec, uint64(time.Now().UnixMilli()), u.ID}
 
 	if err := s.Database.Create(info).Error; err != nil {
 		// TODO
@@ -54,6 +72,14 @@ func createRegistrationToken(s *Server, u *UserInfo, payload []byte) (any, error
 }
 
 func deleteRegistrationToken(s *Server, u *UserInfo, payload []byte) (any, error) {
+	// TODO: improve error
+	if u.Role == 0 {
+		return nil, &ErrorWithCode{
+			Code:    "role-too-low",
+			Message: "only admins have permission to delete registration tokens",
+		}
+	}
+
 	var id string
 	if err := msgpack.Unmarshal(payload, &id); err != nil {
 		// TODO
