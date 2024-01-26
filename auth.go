@@ -29,7 +29,7 @@ const (
 // The password is NEVER stored in the database, only the hashed version.
 type UserInfo struct {
 	ID           string `gorm:"primaryKey" json:"id" msgpack:"id"`
-	Username     string `gorm:"unique" json:"username" msgpack:"username"`
+	Username     string `gorm:"unique" json:"-" msgpack:"-"`
 	Salt         []byte `gorm:"salt" json:"-" msgpack:"-"`
 	Rounds       uint   `gorm:"rounds" json:"-" msgpack:"-"`
 	PasswordHash []byte `gorm:"password_hash" json:"-" msgpack:"-"`
