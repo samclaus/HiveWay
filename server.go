@@ -54,7 +54,14 @@ func NewServer(cfgPath string) (*Server, error) {
 		return nil, errors.Wrapf(err, "error opening database [%s]", cfg.DatabasePath)
 	}
 
-	if err = db.AutoMigrate(&UserInfo{}, &RegistrationTokenInfo{}); err != nil {
+	if err = db.AutoMigrate(
+		&UserInfo{},
+		&RegistrationTokenInfo{},
+		&ProjectInfo{},
+		&StopInfo{},
+		&PathInfo{},
+		&CircleInfo{},
+	); err != nil {
 		// TODO: close database?
 		return nil, errors.Wrap(err, "error migrating database schema")
 	}
@@ -68,6 +75,17 @@ func NewServer(cfgPath string) (*Server, error) {
 			"registration_token:delete": deleteRegistrationToken,
 			"user:list":                 listUsers,
 			"user:delete":               deleteUser,
+			"project:list":              listProjects,
+			"project:create":            createProject,
+			"project:modify":            modifyProjectMetadata,
+			"project:delete":            deleteProject,
+			"project:list_features":     listProjectFeatures,
+			"stop:create":               createStop,
+			"stop:delete":               deleteStop,
+			"path:create":               createPath,
+			"path:delete":               deletePath,
+			"circle:create":             createCircle,
+			"circle:delete":             deleteCircle,
 		},
 	}, nil
 }
