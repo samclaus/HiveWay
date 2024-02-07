@@ -10,13 +10,17 @@ import (
 type CircleSpec struct {
 	Center       *msgpack.RawMessage `gorm:"center" json:"center" msgpack:"center"`
 	RadiusMeters uint                `gorm:"radius_meters" json:"radius_meters" msgpack:"radius_meters"`
-	Description  string              `gorm:"description" json:"description" msgpack:"description"`
+	Name         string              `gorm:"name" json:"name" msgpack:"name"`
 	Styles       *msgpack.RawMessage `gorm:"styles" json:"styles" msgpack:"styles"`
 }
 
 type CircleInfo struct {
 	CircleSpec
 	ID string `gorm:"primaryKey" json:"id" msgpack:"id"`
+}
+
+func (CircleInfo) TableName() string {
+	return "circles"
 }
 
 func createCircle(s *Server, u *UserInfo, payload []byte) (any, error) {

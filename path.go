@@ -8,15 +8,19 @@ import (
 )
 
 type PathSpec struct {
-	Line        bool                `gorm:"line" json:"line" msgpack:"line"`
-	Coords      *msgpack.RawMessage `gorm:"coords" json:"coords" msgpack:"coords"`
-	Description string              `gorm:"description" json:"description" msgpack:"description"`
-	Styles      *msgpack.RawMessage `gorm:"styles" json:"styles" msgpack:"styles"`
+	Line   bool                `gorm:"line" json:"line" msgpack:"line"`
+	Coords *msgpack.RawMessage `gorm:"coords" json:"coords" msgpack:"coords"`
+	Name   string              `gorm:"name" json:"name" msgpack:"name"`
+	Styles *msgpack.RawMessage `gorm:"styles" json:"styles" msgpack:"styles"`
 }
 
 type PathInfo struct {
 	PathSpec
 	ID string `gorm:"primaryKey" json:"id" msgpack:"id"`
+}
+
+func (PathInfo) TableName() string {
+	return "paths"
 }
 
 func createPath(s *Server, u *UserInfo, payload []byte) (any, error) {
